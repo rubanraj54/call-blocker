@@ -9,8 +9,11 @@ import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.gc.materialdesign.views.ButtonFloat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +29,7 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
     private Uri URI_CONTACT;
     private String CONTACT_ID;
 
-    //private FloatingActionButton ADD_CONTACT_FAB;
+    private ButtonFloat ADD_CONTACT_FAB;
 
 
     private static final String SHARED_PREF_NAME = "BLACKLIST";
@@ -41,28 +44,27 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
         SHARED_PREF = getSharedPreferences(SHARED_PREF_NAME,MODE_PRIVATE);
         EDITOR = SHARED_PREF.edit();
 
-        //LIST_VIEW = (ListView) findViewById(R.id.listView);
-
-        /*ADD_CONTACT_FAB = (FloatingActionButton) findViewById(R.id.add_contact);
+        LIST_VIEW = (ListView) findViewById(R.id.listView);
+        ADD_CONTACT_FAB = (ButtonFloat) findViewById(R.id.add_contact);
 
         ADD_CONTACT_FAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
             }
-        });*/
+        });
 
         //checking whether shared preference having any data or not
         if(SHARED_PREF.getAll().size()>=1)
         {
             setNames();
             LIST_ADAPTER = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,ARRAY_LIST_OF_NAMES);
-            //LIST_VIEW.setAdapter(LIST_ADAPTER);
+            LIST_VIEW.setAdapter(LIST_ADAPTER);
         }
         else
         {
             LIST_ADAPTER = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,ARRAY_LIST_OF_NAMES);
-            //LIST_VIEW.setAdapter(LIST_ADAPTER);
+            LIST_VIEW.setAdapter(LIST_ADAPTER);
         }
     }
 
