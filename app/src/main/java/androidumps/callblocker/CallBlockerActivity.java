@@ -41,7 +41,7 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
         SHARED_PREF = getSharedPreferences(SHARED_PREF_NAME,MODE_PRIVATE);
         EDITOR = SHARED_PREF.edit();
 
-        LIST_VIEW = (ListView) findViewById(R.id.listView);
+        //LIST_VIEW = (ListView) findViewById(R.id.listView);
 
         /*ADD_CONTACT_FAB = (FloatingActionButton) findViewById(R.id.add_contact);
 
@@ -57,12 +57,12 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
         {
             setNames();
             LIST_ADAPTER = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,ARRAY_LIST_OF_NAMES);
-            LIST_VIEW.setAdapter(LIST_ADAPTER);
+            //LIST_VIEW.setAdapter(LIST_ADAPTER);
         }
         else
         {
             LIST_ADAPTER = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,ARRAY_LIST_OF_NAMES);
-            LIST_VIEW.setAdapter(LIST_ADAPTER);
+            //LIST_VIEW.setAdapter(LIST_ADAPTER);
         }
     }
 
