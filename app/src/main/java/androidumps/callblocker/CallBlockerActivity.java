@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -20,18 +21,19 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import me.drakeet.materialdialog.MaterialDialog;
 
-public class CallBlockerActivity extends AppCompatActivity {   private ListView LIST_VIEW;
+
+public class CallBlockerActivity extends AppCompatActivity {
+
+    private ListView LIST_VIEW;
     private ArrayList<String> ARRAY_LIST_OF_NAMES = new ArrayList<String>();
     private ArrayAdapter<String> LIST_ADAPTER;
     private SharedPreferences SHARED_PREF;
     private SharedPreferences.Editor EDITOR;
     private Uri URI_CONTACT;
     private String CONTACT_ID;
-
     private ButtonFloat ADD_CONTACT_FAB;
-
-
     private static final String SHARED_PREF_NAME = "BLACKLIST";
     private static final int REQUEST_CODE_PICK_CONTACTS = 1;
 
@@ -43,14 +45,41 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
 
         SHARED_PREF = getSharedPreferences(SHARED_PREF_NAME,MODE_PRIVATE);
         EDITOR = SHARED_PREF.edit();
-
         LIST_VIEW = (ListView) findViewById(R.id.listView);
         ADD_CONTACT_FAB = (ButtonFloat) findViewById(R.id.add_contact);
 
+        //setting onClick listener for floating action button
         ADD_CONTACT_FAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+            }
+        });
+
+        //setting up onClick listener for list item
+        LIST_VIEW.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(final AdapterView<?> parent, View view, final int position, long id) {
+                MaterialDialog mMaterialDialog = new MaterialDialog(CallBlockerActivity.this)
+                        .setTitle("UnBlock")
+                        .setMessage("Do you want to UnBlock this contact?")
+                        .setCanceledOnTouchOutside(true)
+                        .setNegativeButton("OK", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                String KEY = parent.getItemAtPosition(position).toString();
+                                EDITOR.remove(KEY);
+                                EDITOR.commit();
+                                LIST_ADAPTER.clear();
+                                ARRAY_LIST_OF_NAMES.clear();
+                                setNames();
+                                //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
+                                LIST_ADAPTER.notifyDataSetChanged();
+                            }
+                        });
+                //Toast.makeText(getApplicationContext(),parent.getItemAtPosition(position).toString(),Toast.LENGTH_SHORT).show();
+                mMaterialDialog.show();
             }
         });
 
@@ -81,12 +110,10 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -99,11 +126,9 @@ public class CallBlockerActivity extends AppCompatActivity {   private ListView 
             //get the contact name and number , then store it in to shared preference (BLACKLIST)
             EDITOR.putString(retrieveContactName(),retrieveContactNumber());
             EDITOR.commit();
-
             LIST_ADAPTER.clear();
             ARRAY_LIST_OF_NAMES.clear();
             setNames();
-
             //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
             LIST_ADAPTER.notifyDataSetChanged();
         }
