@@ -1,5 +1,7 @@
 package androidumps.callblocker;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -20,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
-import me.drakeet.materialdialog.MaterialDialog;
 
 
 public class CallBlockerActivity extends AppCompatActivity {
@@ -48,41 +48,6 @@ public class CallBlockerActivity extends AppCompatActivity {
         LIST_VIEW = (ListView) findViewById(R.id.listView);
         ADD_CONTACT_FAB = (ButtonFloat) findViewById(R.id.add_contact);
 
-        //setting onClick listener for floating action button
-        ADD_CONTACT_FAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
-            }
-        });
-
-        //setting up onClick listener for list item
-        LIST_VIEW.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(final AdapterView<?> parent, View view, final int position, long id) {
-                MaterialDialog mMaterialDialog = new MaterialDialog(CallBlockerActivity.this)
-                        .setTitle("UnBlock")
-                        .setMessage("Do you want to UnBlock this contact?")
-                        .setCanceledOnTouchOutside(true)
-                        .setNegativeButton("OK", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                String KEY = parent.getItemAtPosition(position).toString();
-                                EDITOR.remove(KEY);
-                                EDITOR.commit();
-                                LIST_ADAPTER.clear();
-                                ARRAY_LIST_OF_NAMES.clear();
-                                setNames();
-                                //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
-                                LIST_ADAPTER.notifyDataSetChanged();
-                            }
-                        });
-                //Toast.makeText(getApplicationContext(),parent.getItemAtPosition(position).toString(),Toast.LENGTH_SHORT).show();
-                mMaterialDialog.show();
-            }
-        });
-
         //checking whether shared preference having any data or not
         if(SHARED_PREF.getAll().size()>=1)
         {
@@ -95,6 +60,32 @@ public class CallBlockerActivity extends AppCompatActivity {
             LIST_ADAPTER = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,ARRAY_LIST_OF_NAMES);
             LIST_VIEW.setAdapter(LIST_ADAPTER);
         }
+
+        //setting onClick listener for floating action button
+        ADD_CONTACT_FAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+            }
+        });
+
+        //setting up onClick listener for list item
+        LIST_VIEW.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(final AdapterView<?> parent, View view, final int position, long id) {
+                new AlertDialog.Builder(CallBlockerActivity.this)
+                        .setTitle("Remove Contact")
+                        .setMessage("Do you want to remove this contact from BlockList?")
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                String KEY = parent.getItemAtPosition(position).toString();
+                                removeSingleContact(KEY);
+                            }
+                        })
+                        .show();
+            }
+        });
+
     }
 
     @Override
@@ -111,12 +102,13 @@ public class CallBlockerActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.remove_all) {
+            removeAllContact();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
+//onActivityResult will get the selected contact name and number from the contact list and will add to blockList
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -124,13 +116,9 @@ public class CallBlockerActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE_PICK_CONTACTS && resultCode == RESULT_OK) {
             URI_CONTACT = data.getData();
             //get the contact name and number , then store it in to shared preference (BLACKLIST)
-            EDITOR.putString(retrieveContactName(),retrieveContactNumber());
-            EDITOR.commit();
-            LIST_ADAPTER.clear();
-            ARRAY_LIST_OF_NAMES.clear();
-            setNames();
-            //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
-            LIST_ADAPTER.notifyDataSetChanged();
+            String CONTACT_NAME = retrieveContactName().toLowerCase();
+            String CONTACT_NUMBER = retrieveContactNumber();
+            addContact(CONTACT_NAME,CONTACT_NUMBER);
         }
     }
 
@@ -146,6 +134,39 @@ public class CallBlockerActivity extends AppCompatActivity {
         //sorting the list of names based on ALPHABETICAL ORDER
         Collections.sort(ARRAY_LIST_OF_NAMES);
     }
+    //this function is used to add a contact to blockList
+    public void addContact(String NAME,String NUMBER){
+        EDITOR.putString(NAME,NUMBER);
+        EDITOR.commit();
+        LIST_ADAPTER.clear();
+        ARRAY_LIST_OF_NAMES.clear();
+        setNames();
+        //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
+        LIST_ADAPTER.notifyDataSetChanged();
+    }
+
+    //this function is used to remove a single contact from blockList
+    public void removeSingleContact(String KEY){
+
+        EDITOR.remove(KEY.toLowerCase());
+        EDITOR.commit();
+        LIST_ADAPTER.clear();
+        ARRAY_LIST_OF_NAMES.clear();
+        setNames();
+        //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
+        LIST_ADAPTER.notifyDataSetChanged();
+    }
+    //this function is used to remove all contacts from block list
+    public void removeAllContact(){
+        EDITOR.clear();
+        EDITOR.commit();
+        LIST_ADAPTER.clear();
+        ARRAY_LIST_OF_NAMES.clear();
+        setNames();
+        //notifyDataSetChanged() will say to adapter that, data for list has been updated so update the list with including newer values
+        LIST_ADAPTER.notifyDataSetChanged();
+    }
+
 
     // this function is used to retrive the contact number from the database
     private String retrieveContactNumber() {
